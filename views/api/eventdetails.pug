@@ -1,0 +1,33 @@
+extends ../layout
+block content  
+    .panel.panel-default
+        .panel-heading
+            b #{event.name}
+        .panel-body
+            img(src=event.images[0].url width="300" height="200")
+        ul.list-group
+            li.list-group-item Venues
+                ul
+                    for venue in event._embedded.venues
+                        li
+                                p #{venue.name} , #{venue.city.name}, #{venue.state.name}
+
+    #twitter(style="display:none")
+        .page-header
+            h2
+                i.fa.fa-twitter(style='color: #4099ff')
+                a#oauth  Login to Twitter
+            
+    script.
+        var eventname = !{JSON.stringify(event.name)}
+        var url = `/api/twitter/${eventname}`
+        $.get(url)
+            .done(data => {
+                $("#twitter").html(data)
+                $("#twitter").css({"display":"block"})
+                })
+            .fail( () => $("#twitter").css({"display":"block"}))
+        $("#oauth").click( () => {
+            var url = `/auth/twitter/?redirecturi=${window.location}`
+            window.location=url
+          })

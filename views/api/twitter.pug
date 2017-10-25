@@ -1,0 +1,83 @@
+extends ../layout
+
+block content
+  .container(style='width: 900px; position:absolute')
+    br
+    .well
+      h4 Compose new Tweet
+      form(role='form', method='POST')
+        input(type='hidden', name='_csrf', value=_csrf)
+        .form-group
+          input.form-control(type='text', name='tweet', autofocus)
+          input(type='hidden', id="redirecturi" name='redirecturi')
+          p.help-block This new Tweet will be posted on your Twitter profile.
+        button.btn.btn-primary(id='submit-btn')
+          i.fa.fa-twitter
+          |  Tweet
+    br
+    .lead Latest
+      strong  #{tweets.length}
+      |  Tweets containing the term
+      strong  #{keyword}
+
+    ul.media-list
+      for tweet in tweets
+        li.media
+          a.pull-left(href='#')
+            - var image = tweet.user.profile_image_url.replace('_normal', '');
+            img.media-object(src=image, style='width: 64px; height: 64px;')
+          .media-body
+            strong.media-heading #{tweet.user.name}
+            span.text-muted  @#{tweet.user.screen_name}
+            p #{tweet.text}
+    script.
+
+      $("form").submit(event=> event.preventDefault())
+
+      $("#submit-btn").click( ()=> {
+
+          // every time set flash panel
+          $("#successes").css("display","none")
+          $("#errors").css("display","none")
+
+          let $sbutton = $("<button>", {type:"button", class:"close", 'data-dismiss':'alert'}).append(
+            $("<i>").addClass("fa fa-times-circle-o"))
+
+          let $successdiv = $("<div>")
+          .addClass("alert alert-success fade in")
+          .attr("id","success")
+          .append($sbutton)
+
+          let $ebutton = $("<button>", {type:"button", class:"close", 'data-dismiss':'alert'}).append(
+            $("<i>").addClass("fa fa-times-circle-o"))
+
+          let $errordiv = $("<div>")
+          .addClass("alert alert-danger fade in")
+          .attr("id","error")
+          .append($ebutton)
+
+          $("#successes").html($successdiv)
+          $("#errors").html($errordiv)
+
+        // set redirecturi form field
+        $("#redirecturi").val(window.location)
+
+        // Post tweet, get response and display in HTML
+        $.post("/api/twitter", $("form").serialize(), (messages)=> {
+          $("form input[name=tweet]").val("")
+          if (messages.errors.length >0){
+            $("#errors").css("display","block")
+            for(error of messages.errors){
+              let $div = $('<div>').text(error.msg)
+              $("#error").append($div)
+            }
+          }
+          if (messages.success.length > 0){
+            $("#successes").css("display","block")
+            for(success of messages.success){
+              let $div = $('<div>').text(success.msg)
+              $("#success").append($div)
+            }
+          }
+        })
+      })

@@ -1,0 +1,6 @@
+extends ../layout
+block content  
+    .list-group(style='width:250px; left:0px')
+        for event in events
+            - let id = `/event/details/${event.id}`
+            a.list-group-item(href=id) #{event.name}
